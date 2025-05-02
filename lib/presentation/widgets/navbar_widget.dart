@@ -33,7 +33,7 @@ class NavbarWidget extends StatelessWidget {
 
             BottomBarItem(
               icon: const Icon(Icons.person),
-              title: const Text('Cabin'),
+              title: const Text('Profile'),
               backgroundColor: Colors.teal,
               unSelectedColor: Colors.black,
             ),

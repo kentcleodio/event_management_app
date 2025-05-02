@@ -1,5 +1,8 @@
+import 'package:event_management_app/data/notifiers.dart';
 import 'package:event_management_app/presentation/widgets/navbar_widget.dart';
 import 'package:flutter/material.dart';
+
+import 'data/constants.dart';
 
 class WidgetTree extends StatelessWidget {
   const WidgetTree({super.key});
@@ -7,16 +10,12 @@ class WidgetTree extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: FilledButton(onPressed: () {}, child: const Text('Login')),
-          ),
-        ],
+      body: ValueListenableBuilder(
+        valueListenable: selectedPageNotifier,
+        builder: (context, selectedPage, child) {
+          return pages.elementAt(selectedPage);
+        },
       ),
-      body: Container(),
       bottomNavigationBar: const NavbarWidget(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
