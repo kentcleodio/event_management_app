@@ -1,4 +1,5 @@
 import 'package:event_management_app/data/constants.dart';
+import 'package:event_management_app/presentation/event/event_page.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
@@ -36,7 +37,14 @@ class HomeView extends StatelessWidget {
                   itemCount: 5,
                   itemBuilder: (context, index) {
                     return InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EventPage(),
+                          ),
+                        );
+                      },
                       child: Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
