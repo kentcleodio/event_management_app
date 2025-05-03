@@ -1,3 +1,4 @@
+import 'package:event_management_app/data/constants.dart';
 import 'package:event_management_app/data/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
@@ -15,7 +16,7 @@ class NavbarWidget extends StatelessWidget {
           option: BubbleBarOptions(
             inkEffect: true,
             iconSize: 30,
-            inkColor: Colors.tealAccent,
+            inkColor: accentColor,
             barStyle: BubbleBarStyle.vertical,
             bubbleFillStyle: BubbleFillStyle.fill,
             opacity: 0.3,
@@ -27,15 +28,15 @@ class NavbarWidget extends StatelessWidget {
             BottomBarItem(
               icon: const Icon(Icons.home),
               title: const Text('Home'),
-              backgroundColor: Colors.teal,
-              unSelectedColor: Colors.black,
+              backgroundColor: primaryColor,
+              unSelectedColor: primaryTextColor,
             ),
 
             BottomBarItem(
               icon: const Icon(Icons.person),
               title: const Text('Profile'),
-              backgroundColor: Colors.teal,
-              unSelectedColor: Colors.black,
+              backgroundColor: primaryColor,
+              unSelectedColor: primaryTextColor,
             ),
           ],
           currentIndex: selectedPage,

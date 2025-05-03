@@ -1,3 +1,4 @@
+import 'package:event_management_app/data/constants.dart';
 import 'package:event_management_app/widget_tree.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
-      home: const WidgetTree(),
+      home: WidgetTree(currentUser: defaultUser),
     );
   }
 }

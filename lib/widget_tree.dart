@@ -1,12 +1,15 @@
 import 'package:event_management_app/data/notifiers.dart';
+import 'package:event_management_app/presentation/auth/login_page.dart';
 import 'package:event_management_app/presentation/event/event_form.dart';
 import 'package:event_management_app/presentation/widgets/navbar_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'data/constants.dart';
+import 'domain/model/user.dart';
 
 class WidgetTree extends StatelessWidget {
-  const WidgetTree({super.key});
+  final User currentUser;
+  const WidgetTree({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -21,16 +24,21 @@ class WidgetTree extends StatelessWidget {
       bottomNavigationBar: const NavbarWidget(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const EventForm(isCreate: true),
-            ),
-          );
+          (false)
+              ? Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EventForm(isCreate: true),
+                ),
+              )
+              : Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
         },
         shape: const CircleBorder(),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+        backgroundColor: primaryColor,
+        foregroundColor: white,
         child: const Icon(Icons.add, size: 50),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

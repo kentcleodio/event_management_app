@@ -1,29 +1,102 @@
-import 'package:board_datetime_picker/board_datetime_picker.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:event_management_app/data/constants.dart';
+import 'package:event_management_app/presentation/widgets/filled_button_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 final _formKey = GlobalKey<FormState>();
 
-class EventForm extends StatelessWidget {
+class EventForm extends StatefulWidget {
   final bool isCreate;
   final int? id;
   const EventForm({super.key, required this.isCreate, this.id});
 
   @override
-  Widget build(BuildContext context) {
-    final titleController = TextEditingController();
-    final descController = TextEditingController();
-    final startDateController = TextEditingController();
-    final startTimeController = TextEditingController();
-    final endDateController = TextEditingController();
-    final endTimeController = TextEditingController();
-    final locationController = TextEditingController();
-    final DateTime date = DateTime.now();
+  State<EventForm> createState() => _EventFormState();
+}
 
+class _EventFormState extends State<EventForm> {
+  final titleController = TextEditingController();
+  final descController = TextEditingController();
+  final startDateController = TextEditingController();
+  final endDateController = TextEditingController();
+  final locationController = TextEditingController();
+
+  void selectDateTime(
+    BuildContext context,
+    TextEditingController textController,
+  ) {
+    DateTime pickedDateTime = DateTime.now();
+
+    showCupertinoModalPopup(
+      context: context,
+      builder:
+          (context) => CupertinoActionSheet(
+            actions: [
+              SizedBox(
+                height: 250,
+                child: CupertinoDatePicker(
+                  onDateTimeChanged: (DateTime value) {
+                    pickedDateTime = value;
+                  },
+                  use24hFormat: true,
+                  minimumDate: DateTime.now(),
+                  maximumDate: DateTime(2100),
+                  initialDateTime: DateTime.now(),
+                ),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () {
+                setState(() {
+                  textController.text = DateFormat(
+                    'yyyy-MM-dd HH:mm',
+                  ).format(pickedDateTime);
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Done'),
+            ),
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.clear))],
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Exit without finishing?'),
+                      content: Text(
+                        "If you leave now, your event won't be ${(widget.isCreate) ? 'created' : 'updated'}.",
+                      ),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Exit'),
+                        ),
+                        FilledButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Continue editing'),
+                        ),
+                      ],
+                    ),
+              );
+            },
+            icon: const Icon(Icons.clear),
+          ),
+        ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -36,104 +109,51 @@ class EventForm extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    (isCreate) ? 'Create Event' : 'Update Task',
+                    (widget.isCreate) ? 'Create Event' : 'Update Task',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 34,
                       letterSpacing: 4,
                     ),
                   ),
-                  Stack(
-                    children: [
-                      DottedBorder(
-                        borderType: BorderType.RRect,
-                        strokeWidth: 2,
-                        dashPattern: [6, 3],
-                        color: Colors.teal,
-                        radius: const Radius.circular(15),
-                        child:
-                            (isCreate)
-                                ? Container(
-                                  color: const Color.fromARGB(
-                                    47,
-                                    100,
-                                    255,
-                                    219,
-                                  ),
-                                  width: double.infinity,
-                                  height: 150,
-                                )
-                                : const Image(
-                                  image: NetworkImage(imgUrl),
-                                  width: double.infinity,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                ),
-                      ),
-                      Positioned(
-                        top: 55,
-                        left: 110,
-                        child: FilledButton.icon(
-                          onPressed: () {},
-                          label: Text(
-                            (isCreate) ? 'Upload Cover' : 'Change Cover',
-                          ),
-                          icon: const Icon(Icons.image),
-                        ),
-                      ),
-                    ],
-                  ),
                   TextFormField(
-                    controller: (isCreate) ? titleController : null,
-                    initialValue: (!isCreate) ? 'Event 1' : null,
+                    controller: (widget.isCreate) ? titleController : null,
+                    initialValue: (!widget.isCreate) ? 'Event 1' : null,
                     decoration: const InputDecoration(
                       hintText: 'Enter title',
                       label: Text('Title'),
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: startDateController,
-                          decoration: const InputDecoration(
-                            hintText: 'Choose date',
-                            label: Text('Start date'),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: TextFormField(
-                          controller: startTimeController,
-                          decoration: const InputDecoration(
-                            hintText: 'Choose time',
-                            label: Text('Start time'),
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Duration',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Expanded(
                         child: TextFormField(
-                          controller: endDateController,
+                          onTap:
+                              () =>
+                                  selectDateTime(context, startDateController),
+                          controller: startDateController,
+                          readOnly: true,
                           decoration: const InputDecoration(
-                            hintText: 'Choose date',
-                            label: Text('End date'),
+                            hintText: 'Start',
+                            label: Text('Start'),
                           ),
                         ),
                       ),
                       const SizedBox(width: 30),
                       Expanded(
                         child: TextFormField(
-                          controller: endTimeController,
+                          onTap:
+                              () => selectDateTime(context, endDateController),
+                          controller: endDateController,
                           decoration: const InputDecoration(
-                            hintText: 'Choose time',
-                            label: Text('End time'),
+                            hintText: 'End',
+                            label: Text('End'),
                           ),
                         ),
                       ),
@@ -155,19 +175,7 @@ class EventForm extends StatelessWidget {
                     maxLines: 5,
                   ),
                   const SizedBox(height: 40),
-                  FilledButton(
-                    onPressed: () {},
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                    ),
-                    child: const Text(
-                      'Create',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
+                  FilledButtonWidget(onPressed: () {}, label: 'Create'),
                 ],
               ),
             ),

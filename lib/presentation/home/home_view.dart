@@ -19,7 +19,7 @@ class HomeView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                 ),
                 hintText: 'Search events',
-                prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                prefixIcon: const Icon(Icons.search, color: primaryColor),
               ),
             ),
           ),
@@ -32,7 +32,7 @@ class HomeView extends StatelessWidget {
                 },
                 showChildOpacityTransition: false,
                 animSpeedFactor: 3,
-                color: Colors.teal,
+                color: primaryColor,
                 child: ListView.builder(
                   itemCount: 5,
                   itemBuilder: (context, index) {
@@ -57,16 +57,6 @@ class HomeView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(15),
-                                child: const Image(
-                                  height: 200,
-                                  width: 400,
-                                  fit: BoxFit.cover,
-                                  image: NetworkImage(imgUrl),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
                               const Text.rich(
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
@@ -89,11 +79,11 @@ class HomeView extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              const Text(
+                              Text(
                                 'Tue, 01 Apr 2025, 10:10',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey,
+                                  color: secondaryTextColor,
                                 ),
                               ),
                               const SizedBox(height: 10),
