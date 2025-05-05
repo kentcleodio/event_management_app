@@ -1,45 +1,57 @@
 import 'dart:convert';
-
 import 'package:event_management_app/data/constants.dart';
+import 'package:event_management_app/data/notifiers.dart';
+import 'package:event_management_app/domain/model/user.dart';
 import 'package:event_management_app/domain/repository/auth_repo.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class DbAuthRepo implements AuthRepo {
   @override
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<User> login(String email, String password) async {
     var userCredentials = {'email': email, 'password': password};
 
-    var response = await http.post(
-      Uri.parse(apiUrl + 'login'),
-      headers: {'Accept': 'application/json'},
-      body: userCredentials,
-    );
+    try {
+      var response = await http.post(
+        Uri.parse('${apiUrl}login'),
+        headers: {'Accept': 'application/json'},
+        body: userCredentials,
+      );
 
-    var decodedResponse = json.decode(response.body);
+      var decodedResponse = json.decode(response.body);
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = {
-        'statusCode': response.statusCode,
-        'message': decodedResponse['status'],
-        'user': decodedResponse['data']['user'],
-        'apiToken': decodedResponse['data']['token'],
-      };
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = {
+          'statusCode': response.statusCode,
+          'message': decodedResponse['status'],
+          'user': decodedResponse['data']['user'],
+          'apiToken': decodedResponse['data']['token'],
+        };
 
-      return data;
-    } else {
-      Map<String, dynamic> data = {
-        'statusCode': response.statusCode,
-        'message': decodedResponse['message'],
-        'errors': decodedResponse['errors'],
-      };
-
-      return data;
+        final User currentUser = User(
+          id: data['user']['id'],
+          name: data['user']['name'].toString(),
+          email: data['user']['email'].toString(),
+        );
+        responseNotifier.value = data;
+        apiTokenNotifier.value = data['apiToken'];
+        return currentUser;
+      } else {
+        Map<String, dynamic> data = {
+          'statusCode': response.statusCode,
+          'message': decodedResponse['message'],
+          'errors': decodedResponse['errors'],
+        };
+        responseNotifier.value = data;
+        return defaultUser;
+      }
+    } catch (e) {
+      responseNotifier.value = {'statusCode': 500, 'message': e.toString()};
+      return defaultUser;
     }
   }
 
   @override
-  Future<Map<String, dynamic>> register(
+  Future<void> register(
     String name,
     String email,
     String password,
@@ -52,7 +64,7 @@ class DbAuthRepo implements AuthRepo {
       'password_confirmation': confirmPassword,
     };
     var response = await http.post(
-      Uri.parse(apiUrl + 'register'),
+      Uri.parse('${apiUrl}register'),
       headers: {'Accept': 'application/json'},
       body: newUser,
     );
@@ -60,29 +72,56 @@ class DbAuthRepo implements AuthRepo {
     var decodedResponse = json.decode(response.body);
 
     if (response.statusCode == 200) {
-      debugPrint(decodedResponse.toString());
       Map<String, dynamic> data = {
         'statusCode': response.statusCode,
         'message': decodedResponse['status'],
         'user': decodedResponse['data']['user'],
       };
 
-      return data;
+      responseNotifier.value = data;
     } else {
-      debugPrint(decodedResponse.toString());
       Map<String, dynamic> data = {
         'statusCode': response.statusCode,
         'message': decodedResponse['message'],
         'errors': decodedResponse['errors'],
       };
 
-      return data;
+      responseNotifier.value = data;
     }
   }
 
   @override
-  Future<Map<String, dynamic>> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
+  Future<User> logout() async {
+    try {
+      var response = await http.post(
+        Uri.parse('${apiUrl}logout'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${apiTokenNotifier.value}',
+        },
+      );
+
+      var decodedResponse = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = {
+          'statusCode': response.statusCode,
+          'user': decodedResponse['data']['message'],
+        };
+
+        responseNotifier.value = data;
+        return defaultUser;
+      } else {
+        Map<String, dynamic> data = {
+          'statusCode': response.statusCode,
+          'message': decodedResponse['message'],
+        };
+        responseNotifier.value = data;
+        return defaultUser;
+      }
+    } catch (e) {
+      responseNotifier.value = {'statusCode': 500, 'message': e.toString()};
+      return defaultUser;
+    }
   }
 }

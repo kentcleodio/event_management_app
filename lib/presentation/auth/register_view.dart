@@ -3,9 +3,13 @@ import 'package:event_management_app/data/notifiers.dart';
 import 'package:event_management_app/presentation/auth/auth_cubit.dart';
 import 'package:event_management_app/presentation/auth/login_page.dart';
 import 'package:event_management_app/presentation/widgets/filled_button_widget.dart';
+import 'package:event_management_app/widget_tree.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../data/repository/db_event_repo.dart';
+import '../event/event_list_cubit.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -35,174 +39,190 @@ class RegisterView extends StatelessWidget {
           ),
         ),
       ),
-      body: BlocListener<AuthCubit, Map<String, dynamic>>(
-        listener: (context, result) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _formKey.currentState?.validate();
-          });
-        },
-        child: BlocBuilder<AuthCubit, Map<String, dynamic>>(
-          builder: (context, result) {
-            return ValueListenableBuilder(
-              valueListenable: showPasswordNotifier,
-              builder: (context, showPassword, child) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      spacing: 20,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'REGISTER',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 34,
-                            letterSpacing: 4,
+      body: ValueListenableBuilder(
+        valueListenable: responseNotifier,
+        builder: (context, response, child) {
+          return ValueListenableBuilder(
+            valueListenable: showPasswordNotifier,
+            builder: (context, showPassword, child) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    spacing: 20,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'REGISTER',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 34,
+                          letterSpacing: 4,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                          ),
+                          hintText: 'Enter your name',
+                          label: Text('NAME'),
+                        ),
+                        validator: (value) => validate(response, 'name'),
+                      ),
+                      TextFormField(
+                        controller: emailController,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                          ),
+                          hintText: 'Enter your email',
+                          label: Text('EMAIL'),
+                        ),
+                        validator: (value) => validate(response, 'email'),
+                      ),
+                      TextFormField(
+                        controller: passController,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                          ),
+                          hintText: 'Enter your password',
+                          label: const Text('PASSWORD'),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              showPasswordNotifier.value = !showPassword;
+                            },
+                            icon: Icon(
+                              (showPassword)
+                                  ? CupertinoIcons.eye_slash_fill
+                                  : CupertinoIcons.eye_fill,
+                            ),
                           ),
                         ),
-                        TextFormField(
-                          controller: nameController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(30),
-                              ),
-                            ),
-                            hintText: 'Enter your name',
-                            label: Text('NAME'),
+                        obscureText: !showPassword,
+                        validator: (value) => validate(response, 'password'),
+                      ),
+                      TextFormField(
+                        controller: confirmPassController,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
                           ),
-                          validator: (value) => validate(result, 'name'),
-                        ),
-                        TextFormField(
-                          controller: emailController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(30),
-                              ),
-                            ),
-                            hintText: 'Enter your email',
-                            label: Text('EMAIL'),
-                          ),
-                          validator: (value) => validate(result, 'email'),
-                        ),
-                        TextFormField(
-                          controller: passController,
-                          decoration: InputDecoration(
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(30),
-                              ),
-                            ),
-                            hintText: 'Enter your password',
-                            label: const Text('PASSWORD'),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                showPasswordNotifier.value = !showPassword;
-                              },
-                              icon: Icon(
-                                (showPassword)
-                                    ? CupertinoIcons.eye_slash_fill
-                                    : CupertinoIcons.eye_fill,
-                              ),
+                          hintText: 'Confirm password',
+                          label: const Text('CONFIRM PASSWORD'),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              showPasswordNotifier.value = !showPassword;
+                            },
+                            icon: Icon(
+                              (showPassword)
+                                  ? CupertinoIcons.eye_slash_fill
+                                  : CupertinoIcons.eye_fill,
                             ),
                           ),
-                          obscureText: !showPassword,
-                          validator: (value) => validate(result, 'password'),
                         ),
-                        TextFormField(
-                          controller: confirmPassController,
-                          decoration: InputDecoration(
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(30),
-                              ),
-                            ),
-                            hintText: 'Confirm password',
-                            label: const Text('CONFIRM PASSWORD'),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                showPasswordNotifier.value = !showPassword;
-                              },
-                              icon: Icon(
-                                (showPassword)
-                                    ? CupertinoIcons.eye_slash_fill
-                                    : CupertinoIcons.eye_fill,
-                              ),
-                            ),
-                          ),
-                          obscureText: !showPassword,
-                        ),
-                        ValueListenableBuilder(
-                          valueListenable: loadingNotifier,
-                          builder: (context, isLoading, child) {
-                            return (isLoading)
-                                ? const CircularProgressIndicator()
-                                : FilledButtonWidget(
-                                  onPressed: () {
-                                    authCubit.registerUser(
-                                      nameController.text,
+                        obscureText: !showPassword,
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: loadingNotifier,
+                        builder: (context, isLoading, child) {
+                          return (isLoading)
+                              ? const CircularProgressIndicator()
+                              : FilledButtonWidget(
+                                onPressed: () async {
+                                  await authCubit.registerUser(
+                                    nameController.text,
+                                    emailController.text,
+                                    passController.text,
+                                    confirmPassController.text,
+                                  );
+
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 100),
+                                  );
+
+                                  _formKey.currentState!.validate();
+
+                                  if (responseNotifier.value['statusCode'] ==
+                                      200) {
+                                    await authCubit.loginUser(
                                       emailController.text,
                                       passController.text,
-                                      confirmPassController.text,
                                     );
-                                    showPasswordNotifier.value = false;
-                                  },
-                                  label: 'Register',
-                                );
-                          },
-                        ),
 
-                        (result['statusCode'] == 200)
-                            ? const Text('Registered successfully')
-                            : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("Already have an account?"),
-                                TextButton(
-                                  onPressed: () {
-                                    showPasswordNotifier.value = false;
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginPage(),
+                                        builder:
+                                            (context) => BlocProvider.value(
+                                              value: authCubit,
+                                              child: BlocProvider(
+                                                create:
+                                                    (context) => EventListCubit(
+                                                      DbEventRepo(),
+                                                    ),
+                                                child: const WidgetTree(),
+                                              ),
+                                            ),
                                       ),
                                     );
-                                  },
-                                  child: const Text('Login'),
+                                  }
+
+                                  showPasswordNotifier.value = false;
+                                },
+                                label: 'Register',
+                              );
+                        },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Already have an account?"),
+                          TextButton(
+                            onPressed: () {
+                              showPasswordNotifier.value = false;
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginPage(),
                                 ),
-                              ],
-                            ),
-                      ],
-                    ),
+                              );
+                            },
+                            child: const Text('Login'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          },
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  String? validate(Map<String, dynamic> result, String inputType) {
+  String? validate(Map<String, dynamic> response, String inputType) {
     if (inputType == 'name') {
-      if (result['statusCode'] == 422 && result['errors'].containsKey('name')) {
-        return result['errors']['name'].toString();
+      if (response['statusCode'] == 422 &&
+          response['errors'].containsKey('name')) {
+        return response['errors']['name'].toString();
       }
       return null;
     } else if (inputType == 'email') {
-      if (result['statusCode'] == 422 &&
-          result['errors'].containsKey('email')) {
-        return result['errors']['email'].toString();
+      if (response['statusCode'] == 422 &&
+          response['errors'].containsKey('email')) {
+        return response['errors']['email'].toString();
       }
       return null;
     } else if (inputType == 'password') {
-      if (result['statusCode'] == 422 &&
-          result['errors'].containsKey('password')) {
-        return result['errors']['password'].toString();
+      if (response['statusCode'] == 422 &&
+          response['errors'].containsKey('password')) {
+        return response['errors']['password'].toString();
       }
       return null;
     } else {

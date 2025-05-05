@@ -1,12 +1,14 @@
-abstract class AuthRepo {
-  Future<Map<String, dynamic>> login(String email, String password);
+import 'package:event_management_app/domain/model/user.dart';
 
-  Future<Map<String, dynamic>> register(
+abstract class AuthRepo {
+  Future<User> login(String email, String password);
+
+  Future<void> register(
     String name,
     String email,
     String password,
     String confirmPassword,
   );
 
-  Future<Map<String, dynamic>> logout();
+  Future<User> logout();
 }

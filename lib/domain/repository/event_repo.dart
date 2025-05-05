@@ -5,9 +5,11 @@ abstract class EventRepo {
 
   Future<List<Event>> getEvents();
 
+  Future<Event> getSingleEvent(int id);
+
   Future<void> updateEvent(Event event);
 
   Future<void> deleteEvent(Event event);
 
-  Future<void> searchEvent(String text);
+  Future<List<Event>> searchEvent(String text);
 }

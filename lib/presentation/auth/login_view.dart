@@ -1,8 +1,9 @@
 import 'package:event_management_app/data/constants.dart';
 import 'package:event_management_app/data/notifiers.dart';
-import 'package:event_management_app/domain/model/user.dart';
+import 'package:event_management_app/data/repository/db_event_repo.dart';
 import 'package:event_management_app/presentation/auth/auth_cubit.dart';
 import 'package:event_management_app/presentation/auth/register_page.dart';
+import 'package:event_management_app/presentation/event/event_list_cubit.dart';
 import 'package:event_management_app/presentation/widgets/filled_button_widget.dart';
 import 'package:event_management_app/widget_tree.dart';
 import 'package:flutter/cupertino.dart';
@@ -34,143 +35,156 @@ class LoginView extends StatelessWidget {
           ),
         ),
       ),
-      body: BlocListener<AuthCubit, Map<String, dynamic>>(
-        listener: (context, result) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_formKey.currentState!.validate()) {
-              final currentUser = User(
-                id: result['user']['id'],
-                name: result['user']['name'],
-                email: result['user']['email'],
-                apiToken: result['apiToken'],
-              );
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WidgetTree(currentUser: currentUser),
-                ),
-              );
-            }
-          });
-        },
-        child: BlocBuilder<AuthCubit, Map<String, dynamic>>(
-          builder: (context, result) {
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  spacing: 20,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'LOGIN',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 34,
-                        letterSpacing: 4,
-                      ),
+      body: ValueListenableBuilder(
+        valueListenable: responseNotifier,
+        builder: (context, response, child) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'LOGIN',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 34,
+                      letterSpacing: 4,
                     ),
-                    TextFormField(
-                      controller: emailController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                        ),
-                        hintText: 'Enter your email',
-                        label: Text('EMAIL'),
+                  ),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
                       ),
-                      validator: (value) => validateInput(result, 'email'),
+                      hintText: 'Enter your email',
+                      label: Text('EMAIL'),
                     ),
-                    ValueListenableBuilder(
-                      valueListenable: showPasswordNotifier,
-                      builder: (context, showPassword, child) {
-                        return TextFormField(
-                          controller: passController,
-                          decoration: InputDecoration(
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(30),
-                              ),
-                            ),
-                            hintText: 'Enter your password',
-                            label: const Text('PASSWORD'),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                showPasswordNotifier.value = !showPassword;
-                              },
-                              icon: Icon(
-                                (showPassword)
-                                    ? CupertinoIcons.eye_slash_fill
-                                    : CupertinoIcons.eye_fill,
-                              ),
+                    validator: (value) => validateInput(response, 'email'),
+                  ),
+                  ValueListenableBuilder(
+                    valueListenable: showPasswordNotifier,
+                    builder: (context, showPassword, child) {
+                      return TextFormField(
+                        controller: passController,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                          ),
+                          hintText: 'Enter your password',
+                          label: const Text('PASSWORD'),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              showPasswordNotifier.value = !showPassword;
+                            },
+                            icon: Icon(
+                              (showPassword)
+                                  ? CupertinoIcons.eye_slash_fill
+                                  : CupertinoIcons.eye_fill,
                             ),
                           ),
-                          obscureText: !showPassword,
-                          validator:
-                              (value) => validateInput(result, 'password'),
-                        );
-                      },
-                    ),
-                    (result['statusCode'] == 401 || result['statusCode'] == 500)
-                        ? Text(
-                          result['message'].toString(),
-                          style: TextStyle(color: dangerColor),
-                        )
-                        : Container(),
-
-                    FilledButtonWidget(
-                      onPressed: () {
-                        authCubit.loginUser(
-                          emailController.text,
-                          passController.text,
-                        );
-
-                        showPasswordNotifier.value = false;
-                        // final User(id: id, name: name, email: email, apiToken: apiToken,);
-                      },
-                      label: 'Login',
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have an account?"),
-                        TextButton(
-                          onPressed: () {
-                            showPasswordNotifier.value = false;
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterPage(),
-                              ),
-                            );
-                          },
-                          child: const Text('Register'),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                        obscureText: !showPassword,
+                        validator:
+                            (value) => validateInput(response, 'password'),
+                      );
+                    },
+                  ),
+                  (response['statusCode'] == 401 ||
+                          response['statusCode'] == 500)
+                      ? Text(
+                        response['message'].toString(),
+                        style: TextStyle(color: dangerColor),
+                      )
+                      : Container(),
+                  ValueListenableBuilder(
+                    valueListenable: loadingNotifier,
+                    builder: (context, isLoading, child) {
+                      return (isLoading)
+                          ? const CircularProgressIndicator()
+                          : FilledButtonWidget(
+                            onPressed: () async {
+                              await authCubit.loginUser(
+                                emailController.text,
+                                passController.text,
+                              );
+
+                              await Future.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+
+                              _formKey.currentState!.validate();
+
+                              debugPrint(response.toString());
+
+                              if (responseNotifier.value['statusCode'] == 200) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => BlocProvider.value(
+                                          value: authCubit,
+                                          child: BlocProvider(
+                                            create:
+                                                (context) => EventListCubit(
+                                                  DbEventRepo(),
+                                                ),
+                                            child: const WidgetTree(),
+                                          ),
+                                        ),
+                                  ),
+                                );
+                              }
+
+                              showPasswordNotifier.value = false;
+                              // final User(id: id, name: name, email: email, apiToken: apiToken,);
+                            },
+                            label: 'Login',
+                          );
+                    },
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account?"),
+                      TextButton(
+                        onPressed: () {
+                          showPasswordNotifier.value = false;
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterPage(),
+                            ),
+                          );
+                        },
+                        child: const Text('Register'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  String? validateInput(Map<String, dynamic> result, String inputType) {
+  String? validateInput(Map<String, dynamic> response, String inputType) {
     if (inputType == 'email') {
-      if (result['statusCode'] == 422 &&
-          result['errors'].containsKey('email')) {
-        return result['errors']['email'].toString();
+      if (response['statusCode'] == 422 &&
+          response['errors'].containsKey('email')) {
+        return response['errors']['email'].toString();
       }
       return null;
     } else if (inputType == 'password') {
-      if (result['statusCode'] == 422 &&
-          result['errors'].containsKey('password')) {
-        return result['errors']['password'].toString();
+      if (response['statusCode'] == 422 &&
+          response['errors'].containsKey('password')) {
+        return response['errors']['password'].toString();
       }
       return null;
     } else {
