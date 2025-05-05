@@ -60,6 +60,7 @@ class EventView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final eventListCubit = context.read<EventListCubit>();
+    final eventCubit = context.read<EventCubit>();
     return BlocBuilder<EventCubit, Event>(
       builder: (context, event) {
         return Scaffold(
@@ -79,8 +80,8 @@ class EventView extends StatelessWidget {
           floatingActionButton:
               (apiTokenNotifier.value != null && currentUser.id == event.userId)
                   ? FloatingActionButton(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -99,6 +100,8 @@ class EventView extends StatelessWidget {
                               ),
                         ),
                       );
+
+                      await eventCubit.loadEvent(id);
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(40),

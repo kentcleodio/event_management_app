@@ -98,7 +98,7 @@ class HomeView extends StatelessWidget {
 
                                             return InkWell(
                                               onTap: () async {
-                                                Navigator.push(
+                                                await Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
                                                     builder:
@@ -119,6 +119,9 @@ class HomeView extends StatelessWidget {
                                                         ),
                                                   ),
                                                 );
+
+                                                await eventListCubit
+                                                    .loadEvents();
                                               },
                                               child: Card(
                                                 shape: RoundedRectangleBorder(

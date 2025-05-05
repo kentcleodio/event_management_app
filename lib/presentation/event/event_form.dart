@@ -287,7 +287,6 @@ class _EventFormState extends State<EventForm> {
                                       if (response['statusCode'] == 201 ||
                                           response['statusCode'] == 200) {
                                         Navigator.pop(context);
-                                        Navigator.pop(context);
                                       }
                                     }
 

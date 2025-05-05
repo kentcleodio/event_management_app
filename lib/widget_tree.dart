@@ -19,6 +19,7 @@ class WidgetTree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final eventListCubit = context.read<EventListCubit>();
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: BlocBuilder<AuthCubit, User>(
@@ -37,28 +38,31 @@ class WidgetTree extends StatelessWidget {
       ),
       bottomNavigationBar: const NavbarWidget(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          (apiTokenNotifier.value != null)
-              ? Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => BlocProvider(
-                        create: (context) => AuthCubit(DbAuthRepo()),
+        onPressed: () async {
+          if (apiTokenNotifier.value != null) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => BlocProvider(
+                      create: (context) => AuthCubit(DbAuthRepo()),
+                      child: BlocProvider(
+                        create: (context) => EventListCubit(DbEventRepo()),
                         child: BlocProvider(
-                          create: (context) => EventListCubit(DbEventRepo()),
-                          child: BlocProvider(
-                            create: (context) => EventCubit(DbEventRepo(), 0),
-                            child: const EventForm(isCreate: true),
-                          ),
+                          create: (context) => EventCubit(DbEventRepo(), 0),
+                          child: const EventForm(isCreate: true),
                         ),
                       ),
-                ),
-              )
-              : Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
+                    ),
+              ),
+            );
+            await eventListCubit.loadEvents();
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          }
         },
         shape: const CircleBorder(),
         backgroundColor: primaryColor,
